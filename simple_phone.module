@@ -1,0 +1,316 @@
+<?php
+
+/**
+ * Implements hook_field_info().
+ */
+function simple_phone_field_info() {
+  return array(
+    'simple_phone' => array(
+      'label'       => 'Phone',
+      'description' => 'This is a description',
+      'settings'    => array(
+        'max_length'    => 15,
+        'phone_pattern' => '[1-9][0-9]{2}-[1-9][0-9]{2}-[0-9]{4}',
+        'phone_example' => 'xxx-xxx-xxxx',
+      ),
+      'default_widget'    => 'simple_phone',
+      'default_formatter' => 'simple_phone_default',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_validate().
+ */
+function simple_phone_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  $pattern = '/^' . $field['settings']['phone_pattern'] . '$/';
+  foreach ($items as $delta => $item) {
+    if (!preg_match($pattern, $item['simple_phone'])) {
+      $errors[$field['field_name']][$langcode][$delta][] = array(
+        'error'   => 'simple_phone_not_valid',
+        'message' => t('%name: the phone number is not formatted correctly.', array('%name' => $instance['label'])),
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function simple_phone_field_is_empty($item, $field) {
+  return empty($item);
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function simple_phone_field_formatter_info() {
+  return array(
+    'simple_phone_default' => array(
+      'label'       => t('Default'),
+      'description' => t('Description here'),
+      'field types' => array('simple_phone'),
+      'settings'    => array(
+        'phone_pattern' => '[1-9][0-9]{2}-[1-9][0-9]{2}-[0-9]{4}',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function simple_phone_field_formatter_view($object_type, $object, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  switch ($display['type']) {
+    case 'simple_phone_default':
+      foreach ($items as $delta => $item) {
+        $output = $item['simple_phone'];
+        $element[$delta] = array('#markup' => $output);
+      }
+      
+      break;
+  }
+  
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function simple_phone_field_widget_info() {
+  return array(
+    'simple_phone' => array(
+      'label'       => 'Phone',
+      'field types' => array('simple_phone'),
+      'behaviors'   => array(
+        'multiple_values' => FIELD_BEHAVIOR_DEFAULT,
+        'default value'   => FIELD_BEHAVIOR_NONE,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function simple_phone_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $phone = isset($items[$delta]['simple_phone']) ? $items[$delta]['simple_phone'] : '';
+  $element['#description'] = !empty($field['settings']['phone_example']) ? 'E.g., ' . $field['settings']['phone_example'] : '';
+
+  
+  $widget = $element;
+  $widget['#delta'] = $delta;
+  
+  switch ($instance['widget']['type']) {
+    case 'simple_phone':
+      $widget += array(
+        '#type' => 'textfield',
+        '#default_value' => $phone,
+        '#maxlength' => 15,
+        '#size' => 15,
+        '#prefix' => '<div class="simple-phone-wrapper">',
+        '#suffix' => '</div>',
+      );
+      break;
+  }
+  $element['simple_phone'] = $widget;
+  
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_error().
+ */
+function simple_phone_field_widget_error($element, $error, $form, &$form_state) {
+  switch ($error['error']) {
+    case 'simple_phone_not_valid':
+      form_error($element, $error['message']);
+      break;
+  }
+}
+
+/**
+ * Implements hook_field_settings_form().
+ */
+function simple_phone_field_settings_form($field, $instance, $has_data) {
+  $form = array();
+  $settings = $field['settings'];
+  
+  $form = array(
+    'phone_pattern' => array(
+      '#type' => 'textfield',
+      '#title' => 'Phone pattern',
+      '#default_value' => $settings['phone_pattern'],
+    ),
+    'phone_example' => array(
+      '#type' => 'textfield',
+      '#title' => 'Example text',
+      '#default_value' => $settings['phone_example'],
+    ),
+  );
+  
+  return $form;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function simple_phone_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  
+  $element = array();
+  $element['phone_pattern'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Phone pattern'),
+    '#description' => t('This is a simple description'),
+    '#default_value' => $settings['phone_pattern'],
+    '#multiple' => FALSE,
+  );
+  
+  return $element;
+}
+
+
+/*********************
+ *  WEBFORM COMPONENT
+ *********************/
+
+/**
+ * Implements hook_webform_component_info().
+ */
+function simple_phone_webform_component_info() {
+  $components = array();
+  
+  $components['simple_phone'] = array(
+    'label' => t('Phone'),
+    'description' => t('Basic phone field type.'),
+    'features' => array(
+      'title_display' => TRUE,
+      'title_inline' => TRUE,
+    ),
+  );
+  
+  return $components;
+}
+
+function _webform_defaults_simple_phone() {
+  return array(
+    'name' => '',
+    'form_key' => NULL,
+    'mandatory' => 0,
+    'pid' => 0,
+    'weight' => 0,
+    'extra' => array(
+      'private' => 0,
+    ),
+    'validation' => array(
+      'phone_pattern' => 'nxx-nxx-xxxx',
+    ),
+  );
+}
+
+function _webform_edit_simple_phone($component) {
+  $form = array();
+print '<pre>'; print_r($component['validation']['phone_pattern']); die('</pre>');
+  $form['private'] = array();
+  $form['validation']['phone_pattern'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Phone pattern'),
+    '#default_value' => $component['validation']['phone_pattern'],
+    '#description' => t('This will be the description.'),
+    '#required' => TRUE,
+  );
+  
+  return $form;
+}
+
+function _webform_render_simple_phone($component, $value = NULL, $filter = TRUE) {
+  // We need to set a blank description if none was set
+  if (!isset($component['extra']['description'])) {
+    $component['extra']['description'] = '';
+  }
+  
+  $form_item = array(
+    '#type'          => 'textfield',
+    '#title'         => $filter ? _webform_filter_xss($component['name']) : $component['name'],
+    '#required'      => $component['mandatory'],
+    '#weight'        => $component['weight'],
+    '#description'   => $filter ? _webform_filter_descriptions($component['extra']['description']) : $component['extra']['description'],
+    '#default_value' => $filter ? _webform_filter_values($component['value']) : $component['value'],
+    '#prefix'        => '<div class="webform-component-simple_phone" id="webform-component-' . $component['form_key'] . '">',
+    '#suffix'        => '</div>',
+  );
+
+  if (isset($value)) {
+    $form_item['#default_value'] = $value[0];
+  }
+
+  return $form_item;
+}
+
+function _webform_display_simple_phone($component, $value, $format = 'html') {
+  return array(
+    '#title' => $component['name'],
+    '#weight' => $component['weight'],
+    '#theme' => 'webform_display_simple_phone',
+    '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
+    '#post_render' => array('webform_element_wrapper'),
+    '#component' => $component,
+    '#format' => $format,
+    '#value' => isset($value[0]) ? $value[0] : '',
+  );
+}
+
+/**
+ * Implements _webform_theme_component().
+ */
+function _webform_theme_simple_phone() {
+  return array(
+    'webform_display_simple_phone' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+/**
+ * Format the output of data for this component.
+ */
+function theme_webform_display_simple_phone($variables) {
+  $element = $variables['element'];
+  return $element['#value'];
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function simple_phone_form_alter(&$form, &$form_state, $form_id) {
+  if (strpos($form_id, 'webform_client_form_') !== FALSE) {
+    $form['#validate'][] = 'simple_phone_webform_client_form_validate';
+  }
+}
+
+/**
+ * Validation function for simple_phone_form_alter.
+ */
+function simple_phone_webform_client_form_validate(&$form, &$form_state) {
+  $simple_phone_components = array();
+  $submitted_values = $form_state['values']['submitted'];
+  
+  foreach ($form_state['webform']['component_tree']['children'] as $key => $component) {
+    if ($component['type'] == 'simple_phone') {
+      $form_key = $component['form_key'];
+      
+      $phone_pattern = $component['validation']['phone_pattern'];
+      if (strpos($component['validation']['phone_pattern'], 'x') !== FALSE) {
+        $phone_pattern = str_replace('x', '[0-9]', str_replace('n', '[2-9]', $phone_pattern));
+        $phone_pattern = str_replace('(', '\(', str_replace(')', '\)', $phone_pattern));
+      }
+      
+      if (!empty($submitted_values[$form_key]) && !preg_match('/^' . $component['validation']['phone_pattern'] . '$/', $submitted_values[$form_key])) {
+        form_set_error('submitted][' . $form_key, t('!name field is not formatted correctly.', array('!name' => $component['name'])));
+      }
+    }
+  }
+}

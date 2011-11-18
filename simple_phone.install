@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * Implements hook_field_schema().
+ */
+function simple_phone_field_schema($field) {
+  return array(
+    'columns' => array(
+      'simple_phone' => array(
+        'type' => 'varchar',
+        'length' => 15,
+        'not null' => FALSE,
+      ),
+    ),
+    'indexes' => array(
+      'simple_phone' => array('simple_phone'),
+    ),
+  );
+}
