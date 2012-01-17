@@ -80,8 +80,8 @@ function simple_phone_field_formatter_view($object_type, $object, $field, $insta
  */
 function simple_phone_field_widget_info() {
   return array(
-    'simple_phone' => array(
-      'label'       => 'Phone',
+    'simple_phone_textfield' => array(
+      'label'       => t('Text field'),
       'field types' => array('simple_phone'),
       'behaviors'   => array(
         'multiple_values' => FIELD_BEHAVIOR_DEFAULT,
@@ -213,7 +213,6 @@ function _webform_defaults_simple_phone() {
 
 function _webform_edit_simple_phone($component) {
   $form = array();
-print '<pre>'; print_r($component['validation']['phone_pattern']); die('</pre>');
   $form['private'] = array();
   $form['validation']['phone_pattern'] = array(
     '#type' => 'textfield',
