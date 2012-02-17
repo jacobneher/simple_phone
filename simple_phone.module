@@ -43,6 +43,24 @@ function simple_phone_field_settings_form($field, $instance, $has_data) {
 }
 
 /**
+ * Implements hook_field_validate().
+ */
+function simple_phone_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  $pattern = '/^' . $field['settings']['phone_pattern'] . '$/';
+  foreach ($items as $delta => $item) {
+    // Not required, but a value has been entered...
+    if (empty($instance['required']) && !empty($item['simple_phone'])) {
+      if (!preg_match($pattern, $item['simple_phone'])) {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error'   => 'simple_phone_not_valid',
+          'message' => t('%name: the phone number is not formatted correctly.', array('%name' => $instance['label'])),
+        );
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_field_is_empty().
  */
 function simple_phone_field_is_empty($item, $field) {
@@ -140,21 +158,6 @@ function simple_phone_field_widget_form(&$form, &$form_state, $field, $instance,
   $element['simple_phone'] = $widget;
   
   return $element;
-}
-
-/**
- * Implements hook_field_validate().
- */
-function simple_phone_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
-  $pattern = '/^' . $field['settings']['phone_pattern'] . '$/';
-  foreach ($items as $delta => $item) {
-    if (!preg_match($pattern, $item['simple_phone'])) {
-      $errors[$field['field_name']][$langcode][$delta][] = array(
-        'error'   => 'simple_phone_not_valid',
-        'message' => t('%name: the phone number is not formatted correctly.', array('%name' => $instance['label'])),
-      );
-    }
-  }
 }
 
 /**
