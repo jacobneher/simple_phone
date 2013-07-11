@@ -141,6 +141,7 @@ function simple_phone_field_widget_info() {
  */
 function simple_phone_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $element['#description'] = !empty($field['settings']['phone_example']) ? 'E.g., ' . $field['settings']['phone_example'] : '';
+  $phone_length = strlen($field['settings']['phone_example']);
   
   $widget = $element;
   $widget['#delta'] = $delta;
@@ -149,6 +150,7 @@ function simple_phone_field_widget_form(&$form, &$form_state, $field, $instance,
       $widget += array(
         '#type'          => 'textfield',
         '#default_value' => isset($items[$delta]['simple_phone']) ? $items[$delta]['simple_phone'] : '',
+        '#maxlength'     => $phone_length,
         '#size'          => 15,
         '#prefix'        => '<div class="simple-phone-wrapper">',
         '#suffix'        => '</div>',
