@@ -204,7 +204,9 @@ function simple_phone_webform_component_presave(&$component) {
   // We need to set the 'extra' component settings so that the phone pattern is put into the database.
   // We want the actual field for the phone pattern to display in the validation fieldset.
   // This appears to work fine, not sure if this is the 'right' way to accomplish this or not! :)
-  $component['extra']['phone_pattern'] = $component['validation']['phone_pattern'];
+  if ($component['type'] == 'simple_phone') {
+    $component['extra']['phone_pattern'] = $component['validation']['phone_pattern'];
+  }
 }
 
 function _webform_defaults_simple_phone() {
@@ -320,7 +322,7 @@ function simple_phone_webform_client_form_validate(&$form, &$form_state) {
         $phone_pattern = str_replace('x', '[0-9]', str_replace('n', '[2-9]', $phone_pattern));
         $phone_pattern = str_replace('(', '\(', str_replace(')', '\)', $phone_pattern));
       }
-      
+
       if (!empty($submitted_values[$form_key]) && !preg_match('/^' . $phone_pattern . '$/', $submitted_values[$form_key])) {
         form_set_error('submitted][' . $form_key, t('!name field is not formatted correctly.', array('!name' => $component['name'])));
       }
