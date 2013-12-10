@@ -204,7 +204,7 @@ function simple_phone_webform_component_presave(&$component) {
   // We need to set the 'extra' component settings so that the phone pattern is put into the database.
   // We want the actual field for the phone pattern to display in the validation fieldset.
   // This appears to work fine, not sure if this is the 'right' way to accomplish this or not! :)
-  if ($component['type'] == 'simple_phone') {
+  if ($component['type'] == 'simple_phone' && isset($component['validation'])) {
     $component['extra']['phone_pattern'] = $component['validation']['phone_pattern'];
   }
 }
@@ -243,15 +243,25 @@ function _webform_render_simple_phone($component, $value = NULL, $filter = TRUE)
   if (!isset($component['extra']['description'])) {
     $component['extra']['description'] = '';
   }
+
+  $title = '';
+  if ($component['extra']['title_display'] != 'none') {
+    if ($filter) {
+      $title = _webform_filter_xss($component['name']);
+    }
+    else {
+      $title = $component['name'];
+    }
+  }
   
   $form_item = array(
     '#type'          => 'textfield',
-    '#title'         => $filter ? _webform_filter_xss($component['name']) : $component['name'],
+    '#title'         => $title,
     '#required'      => $component['mandatory'],
     '#weight'        => $component['weight'],
     '#description'   => $filter ? _webform_filter_descriptions($component['extra']['description']) : $component['extra']['description'],
     '#default_value' => $filter ? _webform_filter_values($component['value']) : $component['value'],
-    '#prefix'        => '<div class="webform-component-simple_phone" id="webform-component-' . $component['form_key'] . '">',
+    '#prefix'        => '<div class="webform-component-simple_phone' . ($component['extra']['title_display'] == 'inline' ? ' webform-container-inline' : '') . '" id="webform-component-' . $component['form_key'] . '">',
     '#suffix'        => '</div>',
   );
 
@@ -307,9 +317,6 @@ function simple_phone_form_alter(&$form, &$form_state, $form_id) {
  * Validation function for simple_phone_form_alter.
  */
 function simple_phone_webform_client_form_validate(&$form, &$form_state) {
-// print "<pre>"; print_r($form_state['values']['submitted']); print "</pre>";
-// print "<pre>"; print_r($form_state['webform']['component_tree']); die("</pre>");
-
   $simple_phone_components = array();
   $submitted_values = $form_state['values']['submitted'];
   
