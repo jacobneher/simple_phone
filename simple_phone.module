@@ -186,11 +186,11 @@ function simple_phone_webform_component_info() {
   $components = array();
   
   $components['simple_phone_textfield'] = array(
-    'label' => t('Phone'),
+    'label'       => t('Phone'),
     'description' => t('Basic phone field type.'),
-    'features' => array(
+    'features'    => array(
       'title_display' => TRUE,
-      'title_inline' => TRUE,
+      'title_inline'  => TRUE,
     ),
   );
   
@@ -199,12 +199,12 @@ function simple_phone_webform_component_info() {
 
 function _webform_defaults_simple_phone() {
   return array(
-    'name' => '',
-    'form_key' => NULL,
+    'name'      => '',
+    'form_key'  => NULL,
     'mandatory' => 0,
-    'pid' => 0,
-    'weight' => 0,
-    'extra' => array(
+    'pid'       => 0,
+    'weight'    => 0,
+    'extra'     => array(
       'private' => 0,
     ),
     'validation' => array(
@@ -218,11 +218,11 @@ function _webform_edit_simple_phone($component) {
 print '<pre>'; print_r($component['validation']['phone_pattern']); die('</pre>');
   $form['private'] = array();
   $form['validation']['phone_pattern'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Phone pattern'),
+    '#type'          => 'textfield',
+    '#title'         => t('Phone pattern'),
     '#default_value' => $component['validation']['phone_pattern'],
-    '#description' => t('This will be the description.'),
-    '#required' => TRUE,
+    '#description'   => t('This will be the description.'),
+    '#required'      => TRUE,
   );
   
   return $form;
@@ -254,14 +254,14 @@ function _webform_render_simple_phone($component, $value = NULL, $filter = TRUE)
 
 function _webform_display_simple_phone($component, $value, $format = 'html') {
   return array(
-    '#title' => $component['name'],
-    '#weight' => $component['weight'],
-    '#theme' => 'webform_display_simple_phone',
+    '#title'          => $component['name'],
+    '#weight'         => $component['weight'],
+    '#theme'          => 'webform_display_simple_phone',
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
-    '#post_render' => array('webform_element_wrapper'),
-    '#component' => $component,
-    '#format' => $format,
-    '#value' => isset($value[0]) ? $value[0] : '',
+    '#post_render'    => array('webform_element_wrapper'),
+    '#component'      => $component,
+    '#format'         => $format,
+    '#value'          => isset($value[0]) ? $value[0] : '',
   );
 }
 
