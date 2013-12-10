@@ -185,7 +185,7 @@ function simple_phone_field_widget_error($element, $error, $form, &$form_state) 
 function simple_phone_webform_component_info() {
   $components = array();
   
-  $components['simple_phone_textfield'] = array(
+  $components['simple_phone'] = array(
     'label'       => t('Phone'),
     'description' => t('Basic phone field type.'),
     'features'    => array(
@@ -197,6 +197,16 @@ function simple_phone_webform_component_info() {
   return $components;
 }
 
+/**
+ * Implements hook_webform_component_presave().
+ */
+function simple_phone_webform_component_presave(&$component) {
+  // We need to set the 'extra' component settings so that the phone pattern is put into the database.
+  // We want the actual field for the phone pattern to display in the validation fieldset.
+  // This appears to work fine, not sure if this is the 'right' way to accomplish this or not! :)
+  $component['extra']['phone_pattern'] = $component['validation']['phone_pattern'];
+}
+
 function _webform_defaults_simple_phone() {
   return array(
     'name'      => '',
@@ -205,9 +215,7 @@ function _webform_defaults_simple_phone() {
     'pid'       => 0,
     'weight'    => 0,
     'extra'     => array(
-      'private' => 0,
-    ),
-    'validation' => array(
+      'private'       => 0,
       'phone_pattern' => 'nxx-nxx-xxxx',
     ),
   );
@@ -215,16 +223,16 @@ function _webform_defaults_simple_phone() {
 
 function _webform_edit_simple_phone($component) {
   $form = array();
-print '<pre>'; print_r($component['validation']['phone_pattern']); die('</pre>');
+
   $form['private'] = array();
   $form['validation']['phone_pattern'] = array(
     '#type'          => 'textfield',
     '#title'         => t('Phone pattern'),
-    '#default_value' => $component['validation']['phone_pattern'],
+    '#default_value' => $component['extra']['phone_pattern'],
     '#description'   => t('This will be the description.'),
     '#required'      => TRUE,
   );
-  
+
   return $form;
 }
 
@@ -297,20 +305,23 @@ function simple_phone_form_alter(&$form, &$form_state, $form_id) {
  * Validation function for simple_phone_form_alter.
  */
 function simple_phone_webform_client_form_validate(&$form, &$form_state) {
+// print "<pre>"; print_r($form_state['values']['submitted']); print "</pre>";
+// print "<pre>"; print_r($form_state['webform']['component_tree']); die("</pre>");
+
   $simple_phone_components = array();
   $submitted_values = $form_state['values']['submitted'];
   
   foreach ($form_state['webform']['component_tree']['children'] as $key => $component) {
-    if ($component['type'] == 'simple_phone_textfield') {
+    if ($component['type'] == 'simple_phone') {
       $form_key = $component['form_key'];
       
-      $phone_pattern = $component['validation']['phone_pattern'];
-      if (strpos($component['validation']['phone_pattern'], 'x') !== FALSE) {
+      $phone_pattern = $component['extra']['phone_pattern'];
+      if (strpos($phone_pattern, 'x') !== FALSE) {
         $phone_pattern = str_replace('x', '[0-9]', str_replace('n', '[2-9]', $phone_pattern));
         $phone_pattern = str_replace('(', '\(', str_replace(')', '\)', $phone_pattern));
       }
       
-      if (!empty($submitted_values[$form_key]) && !preg_match('/^' . $component['validation']['phone_pattern'] . '$/', $submitted_values[$form_key])) {
+      if (!empty($submitted_values[$form_key]) && !preg_match('/^' . $phone_pattern . '$/', $submitted_values[$form_key])) {
         form_set_error('submitted][' . $form_key, t('!name field is not formatted correctly.', array('!name' => $component['name'])));
       }
     }
