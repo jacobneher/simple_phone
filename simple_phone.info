@@ -3,4 +3,4 @@ description = Provides a simple phone number field.
 ;dependencies[] =
 ;package = 
 core = 7.x
-version = 7.x-1.0
+version = 7.x-1.1
